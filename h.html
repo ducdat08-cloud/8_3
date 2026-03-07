@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+  <title>GIRL_FRIEND.EXE</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@700&family=Quicksand:wght@500;600;700&family=Patrick+Hand+SC&display=swap');
+
+    :root {
+      --ink: rgb(31 41 55);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    .font-pixel { font-family: 'Space Mono', monospace; }
+    .font-main { font-family: 'Quicksand', sans-serif; }
+    .font-handwritten { font-family: 'Patrick Hand SC', cursive; }
+
+    .retro-border {
+      border: 3px solid var(--ink);
+    }
+
+    .retro-shadow {
+      box-shadow: 3px 3px 0 0 var(--ink);
+    }
+
+    .retro-shadow-lg {
+      box-shadow: 5px 5px 0 0 var(--ink);
+    }
+
+    .active-press:active {
+      transform: translate(2px, 2px);
+      box-shadow: none !important;
+    }
+
+    .bg-grid {
+      background-image:
+        linear-gradient(#fbcfe8 1px, transparent 1px),
+        linear-gradient(90deg, #fbcfe8 1px, transparent 1px);
+      background-size: 22px 22px;
+      animation: grid-drift 16s linear infinite;
+    }
+
+    @keyframes grid-drift {
+      0% { background-position: 0 0, 0 0; }
+      100% { background-position: 22px 22px, 22px 22px; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 48% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    .blink {
+      animation: blink 1s steps(1) infinite;
+    }
+
+    .content-screen {
+      width: 100%;
+      height: auto;
+      min-height: 100%;
+    }
+
+    .screen-enter {
+      animation: screen-enter .4s cubic-bezier(.2,.8,.2,1);
+    }
+
+    @keyframes screen-enter {
+      0% {
+        opacity: 0;
+        transform: scale(.97) translateY(8px);
+        filter: blur(5px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    .scrollbar-thin::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background: #f9a8d4;
+      border-radius: 999px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    button:disabled {
+      pointer-events: none;
+    }
+
+    input:focus {
+      outline: none;
+    }
+
+    .pin-dot {
+      transition: transform .2s ease, background-color .2s ease;
+    }
+
+    .pin-dot.pop {
+      transform: scale(1.18);
+    }
+
+    .shake {
+      animation: shakeX .38s ease;
+    }
+
+    @keyframes shakeX {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-7px); }
+      40% { transform: translateX(7px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+      100% { transform: translateX(0); }
+    }
+
+    .menu-btn {
+      transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease;
+    }
+
+    .menu-btn:hover {
+      transform: translateY(-4px) rotate(-1deg);
+      box-shadow: 8px 8px 0 0 var(--ink);
+    }
+
+    .menu-btn:hover .menu-icon-wrap {
+      transform: rotate(-6deg) scale(1.08);
+    }
+
+    .menu-icon-wrap {
+      transition: transform .25s ease;
+    }
+
+    .sticker {
+      position: absolute;
+      font-size: 13px;
+      opacity: .9;
+      animation: float 3s ease-in-out infinite;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .music-cover.spin-slow {
+      animation: spin-slow 12s linear infinite;
+    }
+
+    @keyframes spin-slow {
+      from { transform: rotate(0deg) scale(1.04); }
+      to { transform: rotate(360deg) scale(1.04); }
+    }
+
+    .eq {
+      display: flex;
+      align-items: end;
+      gap: 4px;
+      height: 24px;
+    }
+
+    .eq span {
+      width: 5px;
+      background: #f472b6;
+      border: 2px solid var(--ink);
+      transform-origin: bottom;
+      animation: eq-bounce 1s ease-in-out infinite;
+    }
+
+    .eq span:nth-child(2) { animation-delay: .12s; }
+    .eq span:nth-child(3) { animation-delay: .24s; }
+    .eq span:nth-child(4) { animation-delay: .36s; }
+    .eq span:nth-child(5) { animation-delay: .48s; }
+
+    @keyframes eq-bounce {
+      0%, 100% { height: 9px; }
+      50% { height: 22px; }
+    }
+
+    .progress-shell {
+      height: 14px;
+      border: 3px solid var(--ink);
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 3px 3px 0 0 var(--ink);
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: repeating-linear-gradient(
+        45deg,
+        #f472b6,
+        #f472b6 10px,
+        #f9a8d4 10px,
+        #f9a8d4 20px
+      );
+      transition: width .2s linear;
+    }
+
+    .fan-card {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-origin: bottom center;
+      will-change: transform, opacity, filter;
+      backface-visibility: hidden;
+    }
+
+    .fan-photo {
+      width: min(46vw, 210px);
+      height: min(64vw, 285px);
+    }
+
+    .fan-card.is-center { z-index: 3; }
+    .fan-card.is-left,
+    .fan-card.is-right { z-index: 2; }
+
+    #fanModal.show {
+      display: block !important;
+    }
+
+    .fan-caption-box {
+      min-height: 44px;
+    }
+
+    .gift-box {
+      position: relative;
+      width: min(180px, 56vw);
+      height: min(160px, 50vw);
+      cursor: pointer;
+      transition: transform .25s ease;
+      background: transparent;
+    }
+
+    .gift-box:hover {
+      transform: scale(1.04);
+    }
+
+    .gift-lid {
+      position: absolute;
+      top: 18px;
+      left: 0;
+      width: 100%;
+      height: 40px;
+      background: #fb7185;
+      border: 3px solid var(--ink);
+      box-shadow: 5px 5px 0 0 var(--ink);
+      z-index: 5;
+      transform-origin: left bottom;
+    }
+
+    .gift-body {
+      position: absolute;
+      top: 52px;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 52px);
+      background: #f9a8d4;
+      border: 3px solid var(--ink);
+      box-shadow: 5px 5px 0 0 var(--ink);
+      z-index: 2;
+    }
+
+    .gift-ribbon-v {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: calc(100% - 18px);
+      background: #facc15;
+      border-left: 3px solid var(--ink);
+      border-right: 3px solid var(--ink);
+      z-index: 6;
+    }
+
+    .gift-ribbon-h {
+      position: absolute;
+      top: 82px;
+      left: 0;
+      width: 100%;
+      height: 22px;
+      background: #facc15;
+      border-top: 3px solid var(--ink);
+      border-bottom: 3px solid var(--ink);
+      z-index: 4;
+    }
+
+    .gift-bow {
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92px;
+      height: 50px;
+      z-index: 7;
+    }
+
+    .gift-bow::before,
+    .gift-bow::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      width: 38px;
+      height: 38px;
+      background: #fde68a;
+      border: 3px solid var(--ink);
+      border-radius: 999px 999px 999px 0;
+    }
+
+    .gift-bow::before {
+      left: 2px;
+      transform: rotate(-35deg);
+    }
+
+    .gift-bow::after {
+      right: 2px;
+      transform: scaleX(-1) rotate(-35deg);
+    }
+
+    .gift-bow-center {
+      position: absolute;
+      top: 11px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 22px;
+      height: 22px;
+      background: #facc15;
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      z-index: 8;
+    }
+
+    .gift-particle {
+      position: absolute;
+      font-size: 18px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .typing-cursor::after {
+      content: '_';
+      display: inline-block;
+      margin-left: 2px;
+      animation: blink 1s steps(1) infinite;
+    }
+
+    .reply-toast {
+      animation: toast-pop .35s cubic-bezier(.2,.8,.2,1);
+    }
+
+    @keyframes toast-pop {
+      0% {
+        opacity: 0;
+        transform: translateY(10px) scale(.96);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .mini-heart {
+      position: absolute;
+      color: #ec4899;
+      font-size: 12px;
+      pointer-events: none;
+      animation: float-up 2.2s ease-out forwards;
+      opacity: 0;
+    }
+
+    @keyframes float-up {
+      0% {
+        opacity: 0;
+        transform: translateY(0) scale(.7);
+      }
+      15% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-70px) scale(1.2);
+      }
+    }
+
+    .safe-bottom {
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+    }
+
+    .app-pets {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 8;
+    }
+
+    .pet-gif {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      opacity: .96;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.15));
+      animation: pet-float 3s ease-in-out infinite;
+      user-select: none;
+    }
+
+    .pet-left-inside {
+      left: 6px;
+      bottom: 52px;
+    }
+
+    .pet-right-inside {
+      right: 6px;
+      bottom: 52px;
+      animation-delay: .7s;
+    }
+
+    @keyframes pet-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .intro-screen {
+      position: absolute;
+      inset: 0;
+      z-index: 999;
+      background: #ffffff;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .intro-scroll {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      padding: 10vh 20px;
+    }
+
+    .intro-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .intro-scroll::-webkit-scrollbar-thumb {
+      background: #f9a8d4;
+      border-radius: 999px;
+    }
+
+    .intro-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .intro-text-wrap {
+      min-height: 120%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .intro-big-text {
+      width: 100%;
+      max-width: 1100px;
+      color: #ec4899;
+      font-family: 'Patrick Hand SC', cursive;
+      font-style: italic;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      line-height: 1.75;
+      text-align: center;
+      word-break: break-word;
+      white-space: pre-wrap;
+      font-size: clamp(30px, 5vw, 64px);
+    }
+
+    .intro-char {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(10px) scale(0.96);
+      filter: blur(1.5px);
+      animation: introCharIn 0.28s ease forwards;
+    }
+
+    @keyframes introCharIn {
+      0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.96);
+        filter: blur(1.5px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    .intro-fade-out {
+      animation: introFadeOut .55s ease forwards;
+    }
+
+    @keyframes introFadeOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    #contentArea {
+      scroll-behavior: smooth;
+    }
+
+    @media (max-width: 420px) {
+      .retro-border {
+        border-width: 2.5px;
+      }
+
+      .retro-shadow {
+        box-shadow: 2px 2px 0 0 var(--ink);
+      }
+
+      .retro-shadow-lg {
+        box-shadow: 4px 4px 0 0 var(--ink);
+      }
+
+      .gift-bow {
+        transform: translateX(-50%) scale(.9);
+      }
+
+      .pet-gif {
+        width: 50px;
+        height: 50px;
+      }
+
+      .pet-left-inside,
+      .pet-right-inside {
+        bottom: 50px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .retro-border {
+        border-width: 4px;
+      }
+
+      .retro-shadow {
+        box-shadow: 4px 4px 0 0 var(--ink);
+      }
+
+      .retro-shadow-lg {
+        box-shadow: 6px 6px 0 0 var(--ink);
+      }
+
+      .fan-photo {
+        width: 208px;
+        height: 280px;
+      }
+
+      .pet-gif {
+        width: 72px;
+        height: 72px;
+      }
+
+      .pet-left-inside,
+      .pet-right-inside {
+        bottom: 60px;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-pink-100 flex items-center justify-center font-sans p-2 sm:p-4 select-none bg-grid">
+
+  <audio id="audioPlayer"></audio>
+
+  <div
+    id="appShell"
+    class="relative w-full max-w-md bg-white retro-border retro-shadow overflow-hidden flex flex-col z-10 rounded-[10px]"
+    style="height:min(95svh, 760px);"
+  >
+    <div class="app-pets">
+      <img
+        src="https://github.com/lovesulei/valentine-ask/blob/main/cat_dance.gif?raw=true"
+        alt="cat dance"
+        class="pet-gif pet-left-inside"
+      />
+      <img
+        src="https://github.com/lovesulei/valentine-ask/blob/main/cat_heart.gif?raw=true"
+        alt="cat heart"
+        class="pet-gif pet-right-inside"
+      />
+    </div>
+
+    <div class="bg-pink-400 border-b-[3px] md:border-b-4 border-gray-800 px-3 py-2 flex justify-between items-center z-50 relative shrink-0">
+      <div class="flex items-center gap-2 min-w-0">
+        <button id="backBtn" class="text-white hover:scale-110 hidden shrink-0">
+          <i data-lucide="chevron-left" class="w-5 h-5 stroke-[3]"></i>
+        </button>
+
+        <div id="lockStateIconWrap" class="flex items-center shrink-0">
+          <i id="headerStateIcon" data-lucide="lock" class="w-4 h-4 text-white"></i>
+        </div>
+
+        <span class="text-white font-pixel text-[10px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.18em] truncate">
+          NGUYEN_ANH_THUW.EXE
+        </span>
+      </div>
+
+      <div class="flex gap-1 shrink-0">
+        <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-white border-2 border-gray-800"></div>
+        <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-gray-800 flex items-center justify-center">
+          <i data-lucide="x" class="w-[9px] h-[9px] sm:w-[10px] sm:h-[10px] text-white"></i>
+        </div>
+      </div>
+    </div>
+
+    <div id="contentArea" class="flex-grow flex flex-col px-4 py-4 sm:p-6 bg-pink-50 relative overflow-y-auto overflow-x-hidden scrollbar-thin"></div>
+
+    <div class="bg-gray-100 border-t-[3px] md:border-t-4 border-gray-800 px-3 py-2 flex justify-between items-center shrink-0 safe-bottom">
+      <span id="systemStatus" class="font-pixel text-[7px] sm:text-[8px] text-gray-500 uppercase">System: Locked</span>
+      <div class="flex gap-2 items-center">
+        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+        <span class="font-pixel text-[7px] sm:text-[8px] text-gray-500 uppercase">Heartbeat: Stable</span>
+      </div>
+    </div>
+
+    <div id="fanModal" class="absolute inset-0 z-[100] hidden">
+      <div id="fanBackdrop" class="absolute inset-0 bg-black/0 transition-all duration-300"></div>
+
+      <div id="fanModalInner" class="relative w-full h-full flex items-center justify-center px-3 sm:px-6">
+        <button
+          id="closeFanModal"
+          class="absolute top-4 right-4 sm:top-6 sm:right-6 text-white border-2 border-white p-2 hover:bg-white/20 transition-colors z-[120]"
+        >
+          <i data-lucide="x" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+        </button>
+
+        <div class="relative w-full max-w-[540px] h-[82%] flex flex-col items-center justify-center">
+          <div id="fanCardsContainer" class="relative w-full h-[72%] flex items-center justify-center"></div>
+          <div id="fanCaptionBox" class="fan-caption-box mt-3 max-w-sm text-center z-[120] px-2">
+            <p id="fanCaptionTitle" class="font-pixel text-[10px] sm:text-[11px] text-pink-200 uppercase tracking-wide"></p>
+            <p id="fanCaptionText" class="font-main text-xs sm:text-sm text-white mt-2 leading-relaxed"></p>
+          </div>
+        </div>
+
+        <p class="absolute bottom-6 sm:bottom-10 text-white font-pixel text-[8px] sm:text-[10px] tracking-wide animate-pulse z-[120] text-center px-6">
+          Click anywhere to close
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PLAYLIST = [
+      {
+        id: 0,
+        title: 'Được không',
+        artist: 'Binz ft.Châu Bùi',
+        url: '1.m4a',
+        cover: '1.png',
+        note: 'Mở đầu nhẹ nhàng, giống cảm giác anh nghĩ về em vào những ngày đặc biệt.'
+      },
+      {
+        id: 1,
+        title: 'Từng ngày yêu em',
+        artist: 'Bùi Trường Linh',
+        url: 'tungngayyeuem.m4a',
+        cover: 'tungngayyeuem.jpg',
+        note: 'Một bài đáng yêu, nghe là thấy dịu đi một chút và nhớ em nhiều hơn.'
+      },
+      {
+        id: 2,
+        title: 'Perfect',
+        artist: 'Ed Sheeran',
+        url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+        cover: 'https://images.unsplash.com/photo-1494972308805-463bc619d34e?w=800',
+        note: 'Bài anh muốn để ở cuối, như một câu chốt tình cảm dành cho em.'
+      }
+    ];
+
+    const IMAGES = [
+      {
+        url: '5.jpg',
+        file: 'MEMORY_001.JPG',
+        short: 'Nụ cười anh thích nhất',
+        detail: 'Cười một cái là đủ làm mọi thứ xung quanh sáng hơn rồi.'
+      },
+      {
+        url: '4.jpg',
+        file: 'MEMORY_002.JPG',
+        short: 'Khoảnh khắc siêu đáng yêu',
+        detail: 'Đây là tấm anh thích nhất, nhìn vào là thấy mềm lòng.'
+      },
+      {
+        url: '6.jpg',
+        file: 'MEMORY_003.JPG',
+        short: 'Nhìn là tan chảy',
+        detail: 'Quá xinh đẹp luôn, nhìn vào là muốn ôm thật chặt để bảo vệ em khỏi mọi điều trên đời này.'
+      },
+      {
+        url: '3.jpg',
+        file: 'MEMORY_004.JPG',
+        short: 'Một bức ảnh rất đặc biệt',
+        detail: 'Một khung hình khiến anh thấy em thật đặc biệt và rất đáng nhớ.'
+      }
+    ];
+
+    const CORRECT_PASSWORD = '2306';
+    const INTRO_MESSAGE = 'HI! CHÀO CẬU! HÔM NAY MÌNH CÓ MỘT MÓN QUÀ DÀNH TẶNG CHO CẬU! KHÔNG BIẾT CẬU CÓ THÍCH KHÔNG NHỈ? VẬY HÃY THỬ VÀO XEM NHÉ!';
+
+    let screen = 'intro';
+    let password = '';
+    let error = false;
+    let currentTrackIndex = 0;
+    let isPlaying = false;
+    let fanOutImage = null;
+    let isClosingFan = false;
+    let accessGranted = false;
+    let typedLetterDone = false;
+    let musicProgressRaf = null;
+    let giftOpening = false;
+    let introStarted = false;
+    let introFinished = false;
+
+    const contentArea = document.getElementById('contentArea');
+    const backBtn = document.getElementById('backBtn');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const appShell = document.getElementById('appShell');
+    const headerStateIcon = document.getElementById('headerStateIcon');
+    const systemStatus = document.getElementById('systemStatus');
+    const appPets = document.querySelector('.app-pets');
+
+    const fanModal = document.getElementById('fanModal');
+    const fanBackdrop = document.getElementById('fanBackdrop');
+    const fanCardsContainer = document.getElementById('fanCardsContainer');
+    const closeFanModal = document.getElementById('closeFanModal');
+    const fanModalInner = document.getElementById('fanModalInner');
+    const fanCaptionTitle = document.getElementById('fanCaptionTitle');
+    const fanCaptionText = document.getElementById('fanCaptionText');
+
+    function updateHeaderState() {
+      headerStateIcon.setAttribute('data-lucide', accessGranted ? 'unlock' : 'lock');
+      systemStatus.textContent = accessGranted ? 'System: Online' : 'System: Locked';
+      lucide.createIcons();
+    }
+
+    function setScreen(newScreen) {
+      screen = newScreen;
+      contentArea.scrollTop = 0;
+      render();
+    }
+
+    function updateBackButton() {
+      if (screen !== 'intro' && screen !== 'lock' && screen !== 'menu') {
+        backBtn.classList.remove('hidden');
+      } else {
+        backBtn.classList.add('hidden');
+      }
+    }
+
+    function updatePetVisibility() {
+      if (!appPets) return;
+      appPets.style.display = (screen === 'lock' || screen === 'intro') ? 'none' : 'block';
+    }
+
+    function animatePinDots() {
+      const dots = document.querySelectorAll('.pin-dot');
+      const activeDot = dots[password.length - 1];
+      if (!activeDot) return;
+      activeDot.classList.add('pop');
+      setTimeout(() => activeDot.classList.remove('pop'), 180);
+    }
+
+    function handleUnlock(num) {
+      if (password.length < 4) {
+        const newPass = password + num;
+        password = newPass;
+        render();
+        setTimeout(animatePinDots, 10);
+
+        if (newPass.length === 4) {
+          if (newPass === CORRECT_PASSWORD) {
+            accessGranted = true;
+            updateHeaderState();
+            setTimeout(() => {
+              showAccessGrantedAndOpen();
+            }, 260);
+          } else {
+            error = true;
+            render();
+
+            appShell.classList.remove('shake');
+            void appShell.offsetWidth;
+            appShell.classList.add('shake');
+
+            setTimeout(() => {
+              password = '';
+              error = false;
+              render();
+            }, 1200);
+          }
+        }
+      }
+    }
+
+    function showAccessGrantedAndOpen() {
+      const msg = document.getElementById('accessGrantedText');
+      if (msg) msg.classList.remove('opacity-0');
+
+      if (window.gsap) {
+        gsap.fromTo(
+          '#accessGrantedText',
+          { opacity: 0, y: 6, scale: 0.96 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: 'back.out(1.6)' }
+        );
+      }
+
+      setTimeout(() => {
+        setScreen('menu');
+      }, 700);
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      syncAudio();
+      render();
+    }
+
+    function nextTrack() {
+      currentTrackIndex = (currentTrackIndex + 1) % PLAYLIST.length;
+      syncAudio(true);
+      render();
+    }
+
+    function prevTrack() {
+      currentTrackIndex = (currentTrackIndex - 1 + PLAYLIST.length) % PLAYLIST.length;
+      syncAudio(true);
+      render();
+    }
+
+    function syncAudio(forcePlayIfChanged = false) {
+      const track = PLAYLIST[currentTrackIndex];
+      const wasSame = audioPlayer.src === track.url;
+
+      if (!wasSame) audioPlayer.src = track.url;
+
+      if (isPlaying || forcePlayIfChanged) {
+        isPlaying = true;
+        audioPlayer.play().catch(() => {
+          isPlaying = false;
+          render();
+        });
+      } else {
+        audioPlayer.pause();
+      }
+
+      updateMusicProgress();
+    }
+
+    function formatTime(seconds) {
+      if (!Number.isFinite(seconds)) return '0:00';
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function updateMusicProgress() {
+      const bar = document.getElementById('musicProgressBar');
+      const current = document.getElementById('musicCurrentTime');
+      const total = document.getElementById('musicTotalTime');
+
+      if (!bar || !current || !total) return;
+
+      const duration = audioPlayer.duration || 0;
+      const cur = audioPlayer.currentTime || 0;
+      const pct = duration ? (cur / duration) * 100 : 0;
+
+      bar.style.width = `${pct}%`;
+      current.textContent = formatTime(cur);
+      total.textContent = formatTime(duration);
+
+      if (musicProgressRaf) cancelAnimationFrame(musicProgressRaf);
+      if (screen === 'music' && isPlaying) {
+        musicProgressRaf = requestAnimationFrame(updateMusicProgress);
+      }
+    }
+
+    audioPlayer.addEventListener('timeupdate', updateMusicProgress);
+    audioPlayer.addEventListener('loadedmetadata', updateMusicProgress);
+    audioPlayer.addEventListener('ended', nextTrack);
+
+    function createFanCard(imageUrl, label, extraClass = '', imgClass = '') {
+      return `
+        <div class="fan-card ${extraClass} bg-white p-2 retro-border shadow-2xl">
+          <div class="fan-photo border-2 border-gray-800 overflow-hidden bg-gray-200">
+            <img
+              src="${imageUrl}"
+              class="w-full h-full object-cover ${imgClass}"
+              alt="${label}"
+            />
+          </div>
+          <p class="font-pixel text-[9px] sm:text-[10px] text-center mt-2 font-bold">${label}</p>
+        </div>
+      `;
+    }
+
+    function openFanModal(imageObj) {
+      fanOutImage = imageObj;
+      isClosingFan = false;
+
+      fanCardsContainer.innerHTML = `
+        ${createFanCard(imageObj.url, 'PAGE_01', 'is-left', 'brightness-75 saturate-50 blur-[1px]')}
+        ${createFanCard(imageObj.url, 'PAGE_02', 'is-center', '')}
+        ${createFanCard(imageObj.url, 'PAGE_03', 'is-right', 'brightness-75 saturate-50 blur-[1px]')}
+      `;
+
+      fanCaptionTitle.textContent = imageObj.file.replace('MEMORY', 'PAGE');
+      fanCaptionText.textContent = imageObj.detail;
+
+      fanModal.classList.add('show');
+      fanModal.classList.remove('hidden');
+
+      lucide.createIcons();
+
+      const cards = fanCardsContainer.querySelectorAll('.fan-card');
+      const leftCard = fanCardsContainer.querySelector('.is-left');
+      const centerCard = fanCardsContainer.querySelector('.is-center');
+      const rightCard = fanCardsContainer.querySelector('.is-right');
+
+      if (!window.gsap) return;
+
+      gsap.killTweensOf(cards);
+      gsap.killTweensOf(fanBackdrop);
+
+      const spread = window.innerWidth < 420 ? 70 : 92;
+
+      gsap.set(cards, {
+        xPercent: -50,
+        yPercent: -50,
+        x: 0,
+        y: 24,
+        rotation: 0,
+        scale: 0.82,
+        opacity: 0
+      });
+
+      gsap.set(fanBackdrop, {
+        backgroundColor: 'rgba(0,0,0,0)'
+      });
+
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+      tl.to(fanBackdrop, {
+        backgroundColor: 'rgba(0,0,0,0.9)',
+        duration: 0.28
+      });
+
+      tl.to(centerCard, {
+        opacity: 1,
+        scale: 1,
+        x: 0,
+        y: 0,
+        rotation: 0,
+        duration: 0.42
+      }, '-=0.08');
+
+      tl.to(leftCard, {
+        opacity: 1,
+        scale: 0.96,
+        x: -spread,
+        y: 10,
+        rotation: -13,
+        duration: 0.5
+      }, '-=0.22');
+
+      tl.to(rightCard, {
+        opacity: 1,
+        scale: 0.96,
+        x: spread,
+        y: 10,
+        rotation: 13,
+        duration: 0.5
+      }, '<');
+
+      tl.fromTo(
+        '#fanCaptionBox',
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.3 },
+        '-=0.15'
+      );
+    }
+
+    function closeFan() {
+      if (!fanOutImage || isClosingFan) return;
+      isClosingFan = true;
+
+      const centerCard = fanCardsContainer.querySelector('.is-center');
+      const leftCard = fanCardsContainer.querySelector('.is-left');
+      const rightCard = fanCardsContainer.querySelector('.is-right');
+
+      if (!window.gsap) {
+        fanOutImage = null;
+        fanCardsContainer.innerHTML = '';
+        fanModal.classList.remove('show');
+        fanModal.classList.add('hidden');
+        isClosingFan = false;
+        return;
+      }
+
+      const tl = gsap.timeline({
+        defaults: { ease: 'power2.inOut' },
+        onComplete: () => {
+          fanOutImage = null;
+          fanCardsContainer.innerHTML = '';
+          fanModal.classList.remove('show');
+          fanModal.classList.add('hidden');
+          isClosingFan = false;
+        }
+      });
+
+      tl.to('#fanCaptionBox', {
+        opacity: 0,
+        y: 10,
+        duration: 0.18
+      });
+
+      tl.to([leftCard, rightCard], {
+        x: 0,
+        y: 16,
+        rotation: 0,
+        scale: 0.9,
+        opacity: 0.75,
+        duration: 0.22
+      }, '-=0.05');
+
+      tl.to(centerCard, {
+        x: 0,
+        y: 28,
+        rotation: 0,
+        scale: 0.82,
+        opacity: 0,
+        duration: 0.24
+      }, '-=0.1');
+
+      tl.to(fanBackdrop, {
+        backgroundColor: 'rgba(0,0,0,0)',
+        duration: 0.22
+      }, '-=0.14');
+
+      tl.to([leftCard, rightCard], {
+        opacity: 0,
+        duration: 0.12
+      }, '<');
+    }
+
+    closeFanModal.addEventListener('click', closeFan);
+    fanBackdrop.addEventListener('click', closeFan);
+    fanModalInner.addEventListener('click', (e) => {
+      if (e.target === fanModalInner) closeFan();
+    });
+
+    backBtn.addEventListener('click', () => setScreen('menu'));
+
+    function menuIcon(icon, label, color, screenTarget, sub) {
+      return `
+        <button
+          data-screen="${screenTarget}"
+          class="menu-btn flex flex-col items-center justify-center p-3 sm:p-5 bg-white border-[3px] md:border-4 border-gray-800 retro-shadow-lg active-press w-full relative overflow-hidden min-h-[142px] sm:min-h-[160px]"
+        >
+          <div class="menu-icon-wrap p-3 sm:p-4 ${color} border-2 border-gray-800 mb-2">
+            <i data-lucide="${icon}" class="w-7 h-7 sm:w-8 sm:h-8 text-pink-500"></i>
+          </div>
+          <span class="font-pixel text-[9px] sm:text-[10px] font-bold uppercase tracking-tight text-gray-700">${label}</span>
+          <span class="font-main text-[10px] sm:text-[11px] text-gray-500 mt-1 text-center leading-snug">${sub}</span>
+        </button>
+      `;
+    }
+
+    function renderIntroScreen() {
+      return `
+        <div id="introScreen" class="intro-screen">
+          <div id="introScroll" class="intro-scroll">
+            <div class="intro-text-wrap">
+              <div id="introTypedText" class="intro-big-text"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLockScreen() {
+      return `
+        <div class="content-screen screen-enter flex flex-col items-center justify-center py-4 sm:py-6">
+          <div class="text-center">
+            <div class="text-4xl sm:text-5xl mb-4 animate-float" id="lockVisual">
+              ${accessGranted ? '🔓' : '🔒'}
+            </div>
+            <h2 class="font-pixel text-gray-800 font-bold uppercase tracking-[0.18em] text-sm sm:text-base">
+              Nhập mã PIN
+            </h2>
+            <p class="font-main text-[11px] sm:text-[12px] text-gray-500 mt-2 px-4">
+              Hãy mở khóa thế giới bí mật dành riêng cho em
+            </p>
+          </div>
+
+          <div class="flex flex-col items-center gap-1 min-h-[58px] mt-6">
+            <div class="flex gap-3 sm:gap-4">
+              ${[0,1,2,3].map(i => `
+                <div class="pin-dot w-4 h-4 border-2 border-gray-800 rounded-full ${
+                  error ? 'bg-red-500' : (password.length > i ? 'bg-pink-500' : 'bg-white')
+                }"></div>
+              `).join('')}
+            </div>
+
+            ${
+              error
+                ? `<p class="font-main text-[10px] sm:text-[11px] text-red-500 text-center leading-snug px-4 max-w-[290px]" id="errorMessage">
+                    Nhập sai rồi ,hãy nhớ lại ngày đặc biệt của mình đi nhé
+                  </p>`
+                : `<div class="h-[14px]"></div>`
+            }
+
+            <p id="accessGrantedText" class="font-pixel text-[10px] sm:text-[11px] text-green-600 uppercase tracking-wider opacity-0">
+              ACCESS GRANTED
+            </p>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 sm:gap-3 mt-5">
+            ${[1,2,3,4,5,6,7,8,9,'',0,'X'].map((val) => {
+              if (val === '') {
+                return `<button disabled class="w-14 h-14 sm:w-14 sm:h-14 opacity-0 cursor-default"></button>`;
+              }
+              return `
+                <button
+                  class="pin-btn w-14 h-14 sm:w-14 sm:h-14 flex items-center justify-center font-pixel font-bold text-base sm:text-lg bg-white retro-border retro-shadow active-press hover:bg-pink-100 text-gray-800"
+                  data-value="${val}"
+                >
+                  ${val}
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMenuScreen() {
+      return `
+        <div class="content-screen screen-enter relative min-h-full py-1 sm:py-2">
+          <div class="sticker top-1 left-1">💖</div>
+          <div class="sticker top-4 right-4 sm:right-6" style="animation-delay:.5s">✨</div>
+          <div class="sticker bottom-10 left-4 sm:left-6" style="animation-delay:1s">⭐</div>
+
+          <div class="text-center mb-5">
+            <p class="font-pixel text-[9px] sm:text-[10px] text-pink-500 uppercase tracking-wider">
+              Welcome to your special day.exe
+            </p>
+            <h2 class="font-main text-xl sm:text-2xl font-bold text-gray-800 mt-2 leading-tight px-2">
+              Chúc mừng em đã mở khóa trái tim anh 💖
+            </h2>
+            <p class="font-main text-xs sm:text-sm text-gray-500 mt-2 px-3">
+              Một hệ điều hành nhỏ được viết riêng cho em
+            </p>
+
+            <p class="font-pixel text-[9px] sm:text-[10px] text-gray-500 text-center mt-4">
+              Select a memory.exe<span class="blink">|</span>
+            </p>
+          </div>
+
+          <div id="menuGrid" class="grid grid-cols-2 gap-3 sm:gap-5 items-center justify-center">
+            ${menuIcon('music', 'Music', 'bg-blue-100', 'music', 'Những bài hát anh chọn')}
+            ${menuIcon('mail', 'Letter', 'bg-purple-100', 'letter', 'Một vài điều anh muốn nói')}
+            ${menuIcon('image', 'Image', 'bg-yellow-100', 'image', 'Những khung hình đáng nhớ')}
+            ${menuIcon('gift', 'Gift', 'bg-green-100', 'gift', 'Bất ngờ cuối cùng')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMusicScreen() {
+      const track = PLAYLIST[currentTrackIndex];
+      return `
+        <div class="content-screen screen-enter flex flex-col min-h-full space-y-3">
+          <div class="text-center">
+            <p class="font-pixel text-[9px] sm:text-[10px] text-pink-500 uppercase tracking-wider">Music Room</p>
+            <h3 class="font-main text-lg sm:text-xl font-bold text-gray-800 mt-1">3 bài anh chọn cho ngày hôm nay</h3>
+            <p class="font-main text-xs sm:text-sm text-gray-500 px-2">Nghe thử nhé, biết đâu em sẽ nhớ đến anh một chút</p>
+          </div>
+
+          <div class="bg-white p-3 sm:p-4 retro-border retro-shadow text-center">
+            <div class="w-36 h-36 sm:w-44 sm:h-44 mx-auto retro-border mb-4 overflow-hidden bg-gray-200 relative rounded-full">
+              <img
+                src="${track.cover}"
+                class="music-cover w-full h-full object-cover ${isPlaying ? 'spin-slow' : ''}"
+                alt="cover"
+              />
+              <div class="absolute inset-0 border-[5px] sm:border-[6px] border-pink-200 rounded-full pointer-events-none"></div>
+              ${
+                isPlaying
+                  ? `<div class="absolute top-3 right-3 animate-bounce"><i data-lucide="music" class="w-5 h-5 text-white drop-shadow-md"></i></div>`
+                  : ''
+              }
+            </div>
+
+            <h3 class="font-pixel text-[11px] sm:text-sm text-pink-600 truncate">${track.title}</h3>
+            <p class="font-pixel text-[9px] sm:text-[10px] text-gray-500 mt-1">${track.artist}</p>
+
+            <div class="mt-3 flex flex-col items-center">
+              <p class="font-pixel text-[8px] sm:text-[9px] text-gray-400 uppercase">Now playing...</p>
+              <p class="font-main text-[11px] sm:text-[12px] text-pink-500 font-semibold">Playing for my girl 💗</p>
+            </div>
+
+            <div class="mt-4">
+              <div class="progress-shell w-full">
+                <div id="musicProgressBar" class="progress-bar"></div>
+              </div>
+              <div class="flex justify-between mt-2">
+                <span id="musicCurrentTime" class="font-pixel text-[8px] sm:text-[9px] text-gray-500">0:00</span>
+                <span id="musicTotalTime" class="font-pixel text-[8px] sm:text-[9px] text-gray-500">0:00</span>
+              </div>
+            </div>
+
+            <div class="flex justify-center mt-4 ${isPlaying ? '' : 'opacity-40'}">
+              <div class="eq">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+
+            <div class="bg-pink-50 border-2 border-gray-800 mt-4 p-3 text-left">
+              <p class="font-pixel text-[8px] sm:text-[9px] text-pink-500 uppercase">Song Note</p>
+              <p class="font-main text-[11px] sm:text-[12px] text-gray-700 mt-1 leading-relaxed">${track.note}</p>
+            </div>
+
+            <div class="flex justify-center items-center gap-6 mt-5">
+              <button id="prevTrackBtn" class="active-press">
+                <i data-lucide="skip-back" class="w-6 h-6 text-gray-800 fill-gray-800"></i>
+              </button>
+
+              <button id="togglePlayBtn" class="w-12 h-12 sm:w-14 sm:h-14 bg-pink-400 rounded-full flex items-center justify-center retro-border retro-shadow active-press">
+                ${
+                  isPlaying
+                    ? `<i data-lucide="pause" class="w-6 h-6 sm:w-7 sm:h-7 text-white fill-white"></i>`
+                    : `<i data-lucide="play" class="w-6 h-6 sm:w-7 sm:h-7 text-white fill-white ml-1"></i>`
+                }
+              </button>
+
+              <button id="nextTrackBtn" class="active-press">
+                <i data-lucide="skip-forward" class="w-6 h-6 text-gray-800 fill-gray-800"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-2 pr-1 pb-2">
+            ${PLAYLIST.map((song, i) => `
+              <div
+                class="track-item p-2.5 sm:p-3 bg-white retro-border flex items-center justify-between hover:bg-pink-100 cursor-pointer transition-colors ${
+                  currentTrackIndex === i ? 'bg-pink-50 border-pink-500' : ''
+                }"
+                data-index="${i}"
+              >
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="font-pixel text-[9px] sm:text-[10px] text-gray-400">${i + 1}.</span>
+                  <div class="min-w-0">
+                    <p class="font-pixel text-[9px] sm:text-[10px] truncate">${song.title}</p>
+                    <p class="font-main text-[10px] sm:text-[11px] text-gray-500 truncate">${song.note}</p>
+                  </div>
+                </div>
+                ${
+                  currentTrackIndex === i && isPlaying
+                    ? `<i data-lucide="volume-2" class="w-4 h-4 text-pink-500 animate-pulse shrink-0"></i>`
+                    : `<i data-lucide="heart" class="w-4 h-4 text-gray-300 shrink-0"></i>`
+                }
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderImageScreen() {
+      return `
+        <div class="content-screen screen-enter flex flex-col min-h-full">
+          <div class="text-center mb-4">
+            <p class="font-pixel text-[9px] sm:text-[10px] text-pink-500 uppercase tracking-wider">Memory Gallery</p>
+            <h3 class="font-main text-lg sm:text-xl font-bold text-gray-800 mt-1 px-2 leading-tight">Một vài khoảnh khắc khiến anh thấy em thật đặc biệt</h3>
+            <p class="font-main text-xs sm:text-sm text-gray-500 px-2">Mỗi bức ảnh là một cảm giác anh muốn giữ lại</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 sm:gap-4 content-start pr-1 pb-2">
+            ${IMAGES.map((item) => `
+              <div
+                class="image-card bg-white p-2 retro-border retro-shadow active-press cursor-pointer group"
+                data-url="${item.url}"
+              >
+                <div class="overflow-hidden border-2 border-gray-800">
+                  <img src="${item.url}" class="w-full h-28 sm:h-32 object-cover group-hover:scale-110 transition-transform duration-500" alt="pic" />
+                </div>
+                <p class="font-pixel text-[7px] sm:text-[8px] mt-2 text-center text-gray-500">${item.file}</p>
+                <p class="font-main text-[10px] sm:text-[11px] mt-1 text-center text-pink-500 font-semibold leading-snug">${item.short}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLetterScreen() {
+      return `
+        <div class="content-screen screen-enter flex flex-col min-h-full items-center">
+          <div class="text-center mb-4">
+            <p class="font-pixel text-[9px] sm:text-[10px] text-pink-500 uppercase tracking-wider">Private Letter</p>
+            <h3 class="font-main text-lg sm:text-xl font-bold text-gray-800 mt-1">Có vài điều anh không muốn chỉ nói qua loa</h3>
+            <p class="font-main text-xs sm:text-sm text-gray-500">Nên anh để chúng ở đây</p>
+          </div>
+
+          <div class="bg-white w-full p-4 sm:p-5 retro-border retro-shadow relative leading-relaxed min-h-[320px]">
+            <div class="flex items-center justify-between gap-3 mb-4 border-b-2 border-dashed border-gray-300 pb-3">
+              <div>
+                <p class="font-pixel text-[9px] sm:text-[10px] font-bold text-pink-500">To: My Princess</p>
+                <p class="font-pixel text-[9px] sm:text-[10px] text-gray-500 mt-1">Date: 08/03</p>
+              </div>
+              <i data-lucide="sparkles" class="w-5 h-5 text-yellow-500 shrink-0"></i>
+            </div>
+
+            <div id="letterTypedContent" class="font-main text-[13px] sm:text-sm text-gray-800 space-y-4 leading-relaxed"></div>
+          </div>
+
+          <div class="mt-4 w-full pb-2">
+            <div class="flex gap-2">
+              <input id="replyInput" type="text" placeholder="Reply..." class="flex-grow min-w-0 p-2 font-pixel text-[9px] sm:text-[10px] retro-border outline-none focus:bg-pink-50" />
+              <button id="replyBtn" class="p-2 bg-pink-400 retro-border retro-shadow text-white active-press shrink-0">
+                <i data-lucide="send" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <div id="replyToastWrap" class="mt-3"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGiftScreen() {
+      return `
+        <div class="content-screen screen-enter flex flex-col min-h-full items-center justify-center bg-gradient-to-b from-pink-200 via-pink-100 to-yellow-100 -mx-4 -my-4 sm:-m-6 px-4 py-6 sm:p-6 relative overflow-hidden">
+          <div id="giftHeartField" class="absolute inset-0 pointer-events-none"></div>
+
+          <div class="text-center mb-8 z-10">
+            <p class="font-pixel text-[9px] sm:text-[10px] text-pink-500 uppercase tracking-wider">Final Surprise</p>
+            <h3 class="font-main text-xl sm:text-2xl font-bold text-gray-800 mt-2 px-2 leading-tight">Phần cuối cùng, nhưng là phần anh mong em thích nhất</h3>
+            <p class="font-main text-xs sm:text-sm text-gray-600 mt-2 px-4">Click vào hộp quà để mở bất ngờ dành cho em</p>
+          </div>
+
+          <button id="giftBoxBtn" class="active-press z-10 relative">
+            <div class="gift-box" id="giftBox">
+              <div class="gift-bow">
+                <div class="gift-bow-center"></div>
+              </div>
+              <div class="gift-lid" id="giftLid"></div>
+              <div class="gift-body"></div>
+              <div class="gift-ribbon-v"></div>
+              <div class="gift-ribbon-h"></div>
+
+              <span class="gift-particle" style="left:10%; top:15%">💖</span>
+              <span class="gift-particle" style="left:25%; top:5%">✨</span>
+              <span class="gift-particle" style="left:50%; top:0%">💗</span>
+              <span class="gift-particle" style="left:70%; top:10%">⭐</span>
+              <span class="gift-particle" style="left:88%; top:18%">💞</span>
+            </div>
+          </button>
+
+          <div class="mt-8 sm:mt-10 bg-white/80 retro-border retro-shadow px-4 py-3 text-center z-10 max-w-[280px]">
+            <p id="giftStatus" class="font-pixel text-[9px] sm:text-[10px] text-gray-700 uppercase leading-relaxed">Tap gift để mở surprise.exe</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function scrollIntroToLatestChar() {
+      const scrollEl = document.getElementById('introScroll');
+      const textEl = document.getElementById('introTypedText');
+      if (!scrollEl || !textEl) return;
+
+      const latest = textEl.lastElementChild;
+      if (!latest) return;
+
+      latest.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest'
+      });
+    }
+
+    function startIntroSequence() {
+      if (introStarted || introFinished) return;
+
+      const introTextEl = document.getElementById('introTypedText');
+      const introScreen = document.getElementById('introScreen');
+
+      if (!introTextEl || !introScreen) return;
+
+      introStarted = true;
+      let i = 0;
+
+      function appendChar(ch) {
+        const span = document.createElement('span');
+        span.className = 'intro-char';
+        span.textContent = ch;
+        introTextEl.appendChild(span);
+      }
+
+      function typeNext() {
+        if (screen !== 'intro') return;
+
+        if (i < INTRO_MESSAGE.length) {
+          const ch = INTRO_MESSAGE[i];
+          appendChar(ch);
+          i++;
+
+          if (i % 2 === 0 || ch === ' ' || ch === '!' || ch === '?' || ch === '.') {
+            scrollIntroToLatestChar();
+          }
+
+          let delay = 70;
+          if (ch === ' ') delay = 18;
+          if (ch === ',' || ch === ';' || ch === ':') delay = 80;
+          if (ch === '!' || ch === '?' || ch === '.') delay = 130;
+
+          setTimeout(typeNext, delay);
+        } else {
+          introFinished = true;
+          setTimeout(() => {
+            introScreen.classList.add('intro-fade-out');
+
+            setTimeout(() => {
+              setScreen('lock');
+            }, 550);
+          }, 650);
+        }
+      }
+
+      typeNext();
+    }
+
+    function typeLetter() {
+      const container = document.getElementById('letterTypedContent');
+      if (!container || typedLetterDone) return;
+
+      const paragraphs = [
+        'Hôm nay là một ngày đặc biệt, và anh muốn dành cho em nhiều hơn một lời chúc đơn giản.',
+        'Anh cảm ơn vì em đã xuất hiện, vì sự dịu dàng, đáng yêu và những điều nhỏ bé nhưng rất ấm áp mà em mang đến.',
+        'Anh mong em luôn vui vẻ, luôn xinh đẹp theo cách riêng của mình, và dù hôm nay hay những ngày rất bình thường, em vẫn sẽ được yêu thương thật nhiều.',
+        'Nếu có điều gì anh muốn giữ lâu nhất, thì đó là nụ cười của em.Nên nhớ anh luôn ở đây support em bất cứ lúc nào. Chúc em một ngày 8/3 thật hạnh phúc nhé 💖',
+        '<p class="text-right font-pixel text-pink-500 pt-2 text-[11px] sm:text-[12px]">Love you 3000!</p>',
+        '<p class="text-right font-pixel text-pink-500 pt-2 text-[11px] sm:text-[12px]">PHUNG DUC DAT</p>'
+      ];
+
+      let pIndex = 0;
+      let charIndex = 0;
+      let html = '';
+
+      function tick() {
+        if (pIndex >= paragraphs.length) {
+          typedLetterDone = true;
+          container.classList.remove('typing-cursor');
+          return;
+        }
+
+        container.classList.add('typing-cursor');
+
+        const currentParagraph = paragraphs[pIndex];
+
+        if (currentParagraph.startsWith('<p')) {
+          html += currentParagraph;
+          container.innerHTML = html;
+          pIndex++;
+          charIndex = 0;
+          setTimeout(tick, 120);
+          return;
+        }
+
+        if (charIndex === 0) html += '<p>';
+
+        html += currentParagraph[charIndex];
+        charIndex++;
+
+        if (charIndex >= currentParagraph.length) {
+          html += '</p>';
+          pIndex++;
+          charIndex = 0;
+          container.innerHTML = html;
+          setTimeout(tick, 180);
+          return;
+        }
+
+        container.innerHTML = html;
+        setTimeout(tick, 20);
+      }
+
+      tick();
+    }
+
+    function showReplyToast() {
+      const wrap = document.getElementById('replyToastWrap');
+      if (!wrap) return;
+
+      wrap.innerHTML = `
+        <div class="reply-toast bg-pink-50 retro-border retro-shadow p-3">
+          <p class="font-pixel text-[9px] sm:text-[10px] text-pink-500 uppercase">Reply received</p>
+          <p class="font-main text-xs sm:text-sm text-gray-700 mt-1">Message sent to his heart successfully 💌</p>
+        </div>
+      `;
+    }
+
+    function spawnGiftHearts() {
+      const field = document.getElementById('giftHeartField');
+      if (!field) return;
+
+      for (let i = 0; i < 14; i++) {
+        const span = document.createElement('span');
+        span.className = 'mini-heart';
+        span.textContent = ['💖', '💗', '✨', '💞'][i % 4];
+        span.style.left = `${35 + Math.random() * 30}%`;
+        span.style.top = `${42 + Math.random() * 10}%`;
+        span.style.animationDelay = `${Math.random() * 0.3}s`;
+        field.appendChild(span);
+
+        setTimeout(() => {
+          span.remove();
+        }, 2400);
+      }
+    }
+
+    function openGiftSequence() {
+      if (giftOpening) return;
+      giftOpening = true;
+
+      const giftStatus = document.getElementById('giftStatus');
+      const lid = document.getElementById('giftLid');
+      const particles = document.querySelectorAll('.gift-particle');
+      const box = document.getElementById('giftBox');
+
+      if (!giftStatus || !lid || !box) return;
+
+      giftStatus.textContent = 'Opening surprise...';
+
+      if (!window.gsap) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          giftStatus.textContent = 'Loading your special gift...';
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1100);
+        }
+      });
+
+      tl.to(box, {
+        x: -4,
+        duration: 0.07,
+        repeat: 5,
+        yoyo: true
+      });
+
+      tl.to(lid, {
+        rotation: -24,
+        x: -12,
+        y: -24,
+        duration: 0.45,
+        ease: 'back.out(1.8)'
+      });
+
+      tl.to(particles, {
+        opacity: 1,
+        y: -80,
+        x: (i) => (i - 2) * 18,
+        scale: 1.2,
+        duration: 0.8,
+        stagger: 0.04,
+        ease: 'power2.out'
+      }, '-=0.2');
+
+      tl.call(() => {
+        spawnGiftHearts();
+      });
+
+      tl.to(giftStatus, {
+        opacity: 0,
+        duration: 0.15
+      });
+
+      tl.to(giftStatus, {
+        opacity: 1,
+        duration: 0.15
+      });
+    }
+
+    function animateMenuIn() {
+      if (!window.gsap || screen !== 'menu') return;
+      gsap.fromTo(
+        '#menuGrid .menu-btn',
+        { opacity: 0, y: 18, scale: 0.94 },
+        { opacity: 1, y: 0, scale: 1, stagger: 0.08, duration: 0.42, ease: 'back.out(1.6)' }
+      );
+    }
+
+    function bindEvents() {
+      document.querySelectorAll('.pin-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.dataset.value;
+          if (val === 'X') {
+            password = '';
+            render();
+          } else {
+            handleUnlock(val);
+          }
+        });
+      });
+
+      document.querySelectorAll('.menu-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          setScreen(btn.dataset.screen);
+        });
+      });
+
+      const togglePlayBtn = document.getElementById('togglePlayBtn');
+      const nextTrackBtn = document.getElementById('nextTrackBtn');
+      const prevTrackBtn = document.getElementById('prevTrackBtn');
+      const replyBtn = document.getElementById('replyBtn');
+      const giftBoxBtn = document.getElementById('giftBoxBtn');
+
+      if (togglePlayBtn) togglePlayBtn.addEventListener('click', togglePlay);
+      if (nextTrackBtn) nextTrackBtn.addEventListener('click', nextTrack);
+      if (prevTrackBtn) prevTrackBtn.addEventListener('click', prevTrack);
+
+      if (replyBtn) {
+        replyBtn.addEventListener('click', () => {
+          showReplyToast();
+        });
+      }
+
+      if (giftBoxBtn) {
+        giftBoxBtn.addEventListener('click', openGiftSequence);
+      }
+
+      document.querySelectorAll('.track-item').forEach(item => {
+        item.addEventListener('click', () => {
+          currentTrackIndex = Number(item.dataset.index);
+          isPlaying = true;
+          syncAudio(true);
+          render();
+        });
+      });
+
+      document.querySelectorAll('.image-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const imageObj = IMAGES.find(img => img.url === card.dataset.url);
+          if (imageObj) openFanModal(imageObj);
+        });
+      });
+    }
+
+    function render() {
+      updateBackButton();
+      updateHeaderState();
+      updatePetVisibility();
+
+      if (screen === 'intro') {
+        contentArea.innerHTML = renderIntroScreen();
+      } else if (screen === 'lock') {
+        contentArea.innerHTML = renderLockScreen();
+      } else if (screen === 'menu') {
+        contentArea.innerHTML = renderMenuScreen();
+      } else if (screen === 'music') {
+        contentArea.innerHTML = renderMusicScreen();
+      } else if (screen === 'image') {
+        contentArea.innerHTML = renderImageScreen();
+      } else if (screen === 'letter') {
+        contentArea.innerHTML = renderLetterScreen();
+      } else if (screen === 'gift') {
+        contentArea.innerHTML = renderGiftScreen();
+      }
+
+      bindEvents();
+      lucide.createIcons();
+
+      if (screen === 'intro') {
+        setTimeout(startIntroSequence, 80);
+      }
+
+      if (screen === 'menu') {
+        setTimeout(animateMenuIn, 30);
+      }
+
+      if (screen === 'letter') {
+        setTimeout(typeLetter, 80);
+      }
+
+      if (screen === 'music') {
+        setTimeout(updateMusicProgress, 40);
+      }
+
+      if (error && window.gsap) {
+        gsap.fromTo(
+          '#errorMessage',
+          { opacity: 0, y: -4 },
+          { opacity: 1, y: 0, duration: 0.25 }
+        );
+      }
+    }
+
+    syncAudio();
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Thêm viewport chuẩn để chống zoom bậy trên mobile -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>3D Particle Gesture Love - Cross Device</title>
+
+  <!-- THREE.JS & POSTPROCESSING -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+
+  <!-- MEDIAPIPE -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      overflow: hidden; /* Ngăn scroll trên mobile */
+      background:
+        radial-gradient(circle at center, rgba(255, 80, 120, 0.08), transparent 35%),
+        radial-gradient(circle at 30% 20%, rgba(255, 0, 80, 0.08), transparent 30%),
+        #050505;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      touch-action: none; /* Ngăn pull-to-refresh */
+    }
+
+    canvas { display: block; }
+
+    /* UI Loading */
+    #loading {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.95);
+      color: #fff;
+      font-size: 20px;
+      transition: opacity 0.5s ease;
+      gap: 15px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #ff80ab;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    #loading-detail { font-size: 14px; color: #ff80ab; letter-spacing: 1px; }
+
+    /* UI Layer */
+    #ui-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      color: white;
+      z-index: 5;
+    }
+
+    .instruction {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.4);
+      padding: 12px 20px;
+      border-radius: 16px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.15);
+      line-height: 1.5;
+      text-align: center;
+      font-size: 14px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      width: 90%;
+      max-width: 400px;
+    }
+
+    b { color: #ff80ab; }
+
+    #webcam-preview {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 160px;
+      border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.2);
+      transform: scaleX(-1);
+      background: #111;
+      z-index: 10;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+      object-fit: cover;
+    }
+
+    .gesture-badge {
+      position: absolute;
+      bottom: 15px;
+      left: 20px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: rgba(255, 80, 120, 0.2);
+      border: 1px solid rgba(255, 80, 120, 0.5);
+      color: #fff;
+      font-size: 13px;
+      font-weight: bold;
+      backdrop-filter: blur(8px);
+      z-index: 10;
+    }
+
+    /* Mobile Responsive CSS */
+    @media (max-width: 768px) {
+      .instruction {
+        font-size: 12px;
+        padding: 10px 15px;
+      }
+      #webcam-preview {
+        width: 100px;
+        bottom: 15px;
+        right: 15px;
+        border-radius: 8px;
+      }
+      .gesture-badge {
+        bottom: 15px;
+        left: 15px;
+        font-size: 11px;
+        padding: 6px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <div class="spinner"></div>
+    <div id="loading-text">Đang thiết lập không gian 3D...</div>
+    <div id="loading-detail">0%</div>
+  </div>
+
+  <div id="ui-layer">
+    <div class="instruction">
+      🤚 <b>Xòe tay</b>: Zoom xa gần<br>
+      🫶 <b>Chụm ngón cái + trỏ</b>: Trái tim → <b>I LOVE YOU</b><br>
+      ✌️ <b>Giơ 2 ngón (Peace)</b>: <b>Mùng 8/3 vui vẻ</b>
+    </div>
+    <div class="gesture-badge" id="gesture-label">Chưa nhận diện</div>
+  </div>
+
+  <video id="input_video" style="display:none;" autoplay playsinline muted></video>
+  <video id="webcam-preview" autoplay playsinline muted></video>
+
+  <script>
+    // =========================================================
+    // THIẾT LẬP CROSS-DEVICE (TỐI ƯU MOBILE & PC)
+    // =========================================================
+    const isMobile = window.innerWidth < 768;
+    
+    // Mobile ít hạt hơn để mượt, PC nhiều hạt. 
+    // Hạt trên mobile to hơn để nhìn vẫn ảo diệu.
+    const particleCount = isMobile ? 6500 : 12000; 
+    const particleSize = isMobile ? 3.0 : 2.15;
+    
+    // Scale tổng thể khung cảnh dựa trên màn hình
+    const baseScale = Math.min(1.0, window.innerWidth / 1200);
+
+    // =========================================================
+    // DOM & UI
+    // =========================================================
+    const loadingEl = document.getElementById('loading');
+    const loadingText = document.getElementById('loading-text');
+    const loadingDetail = document.getElementById('loading-detail');
+    const gestureLabel = document.getElementById('gesture-label');
+    const videoElement = document.getElementById('input_video');
+    const previewElement = document.getElementById('webcam-preview');
+
+    function updateProgress(text, pct) {
+      loadingText.textContent = text;
+      loadingDetail.textContent = pct + "%";
+    }
+    const yieldToMain = () => new Promise(resolve => setTimeout(resolve, 0));
+
+    // =========================================================
+    // SCENE, CAMERA, RENDERER
+    // =========================================================
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x050505, 0.001);
+
+    const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 1, 3000);
+    camera.position.z = 510;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+    // Tối ưu Pixel Ratio: Đảm bảo không bị quá tải GPU trên điện thoại màn hình siêu nét
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.2 : 1.75));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x050505, 1);
+    document.body.appendChild(renderer.domElement);
+
+    // Tối ưu Bloom Pass cho Mobile (giảm resolution của bloom)
+    const bloomRes = isMobile 
+      ? new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2) 
+      : new THREE.Vector2(window.innerWidth, window.innerHeight);
+      
+    const composer = new THREE.EffectComposer(renderer);
+    composer.addPass(new THREE.RenderPass(scene, camera));
+
+    const bloomPass = new THREE.UnrealBloomPass(bloomRes, 1.25, 0.6, 0.14);
+    bloomPass.strength = 1.15;
+    bloomPass.radius = 0.55;
+    bloomPass.threshold = 0.16;
+    composer.addPass(bloomPass);
+
+    // =========================================================
+    // PARTICLES - DATA STRUCTURE
+    // =========================================================
+    const geometry = new THREE.BufferGeometry();
+    const randomPositions = new Float32Array(particleCount * 3);
+    const heartPositions = new Float32Array(particleCount * 3);
+    const lovePositions = new Float32Array(particleCount * 3);
+    const march8Positions = new Float32Array(particleCount * 3);
+    const positions = new Float32Array(particleCount * 3);
+
+    const material = new THREE.PointsMaterial({
+      color: 0xff80ab,
+      size: particleSize,
+      transparent: true,
+      opacity: 0.92,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+
+    const particleSystem = new THREE.Points(geometry, material);
+    scene.add(particleSystem);
+
+    // =========================================================
+    // TẠO HÌNH DÁNG (SHAPES)
+    // =========================================================
+    function createHeartShapePositions(targetArray) {
+      for (let i = 0; i < particleCount; i++) {
+        const i3 = i * 3;
+        const t = Math.random() * Math.PI * 2;
+        const x = 16 * Math.pow(Math.sin(t), 3);
+        const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+        const scale = 16.5;
+        targetArray[i3] = x * scale + (Math.random() - 0.5) * 8;
+        targetArray[i3 + 1] = y * scale + (Math.random() - 0.5) * 8;
+        targetArray[i3 + 2] = (Math.random() - 0.5) * 24;
+      }
+    }
+
+    function createTextPositionsFromCanvas(text, targetArray, options = {}) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const res = isMobile ? 0.35 : 0.5; // Giảm độ phân giải canvas trên mobile để quét nhanh hơn
+
+      canvas.width = (options.width || 1500) * res;
+      canvas.height = (options.height || 500) * res;
+      const fontSize = (options.size || 130) * res;
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'white';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = `${options.weight || 900} ${fontSize}px Arial`;
+
+      const lines = Array.isArray(text) ? text : [text];
+      const lineHeight = (options.lineHeight ? options.lineHeight * res : fontSize * 1.08);
+      const totalHeight = lines.length * lineHeight;
+      const startY = canvas.height / 2 - totalHeight / 2 + lineHeight / 2;
+
+      for (let i = 0; i < lines.length; i++) {
+        ctx.fillText(lines[i], canvas.width / 2, startY + i * lineHeight);
+      }
+
+      const img = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      const points = [];
+      const gap = 3; 
+
+      for (let y = 0; y < canvas.height; y += gap) {
+        for (let x = 0; x < canvas.width; x += gap) {
+          const idx = (y * canvas.width + x) * 4;
+          if (img[idx] > 128) {
+            points.push({ x: x - canvas.width / 2, y: canvas.height / 2 - y });
+          }
+        }
+      }
+
+      const scale = (options.scale || 1) / res;
+      const zSpread = options.zSpread || 16;
+      const jitter = options.jitter || 1.8;
+
+      for (let i = 0; i < particleCount; i++) {
+        const i3 = i * 3;
+        // Nếu không có điểm nào (lỗi font/canvas), fallback về giữa
+        const p = points.length > 0 ? points[(Math.random() * points.length) | 0] : {x:0, y:0};
+
+        targetArray[i3] = p.x * scale + (Math.random() - 0.5) * jitter * 2;
+        targetArray[i3 + 1] = p.y * scale + (Math.random() - 0.5) * jitter * 2;
+        targetArray[i3 + 2] = (Math.random() - 0.5) * zSpread * 2;
+      }
+    }
+
+    // =========================================================
+    // KHỞI TẠO BẤT ĐỒNG BỘ (ASYNC INIT)
+    // =========================================================
+    let particlesReady = false, cameraReady = false, aiReady = false, hasHiddenLoading = false;
+
+    async function initParticlesAsync() {
+      // 1. Random
+      updateProgress("Tạo cấu trúc không gian...", 15); await yieldToMain();
+      for (let i = 0; i < particleCount; i++) {
+        const i3 = i * 3;
+        const x = (Math.random() - 0.5) * 1350;
+        const y = (Math.random() - 0.5) * 920;
+        const z = (Math.random() - 0.5) * 1050;
+        randomPositions[i3] = x; randomPositions[i3 + 1] = y; randomPositions[i3 + 2] = z;
+        positions[i3] = x; positions[i3 + 1] = y; positions[i3 + 2] = z;
+      }
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+      // 2. Heart
+      updateProgress("Phác thảo trái tim...", 35); await yieldToMain();
+      createHeartShapePositions(heartPositions);
+
+      // 3. I LOVE YOU (Cân đối lại kích thước cho Mobile)
+      updateProgress("Chuẩn bị hiệu ứng I LOVE YOU...", 60); await yieldToMain();
+      const loveConfig = isMobile 
+        ? { width: 1000, height: 400, size: 120, scale: 1.0, zSpread: 10, jitter: 1.2 }
+        : { width: 1700, height: 420, size: 160, scale: 0.82, zSpread: 14, jitter: 1.4 };
+      createTextPositionsFromCanvas(isMobile ? ["I LOVE", "YOU"] : "I LOVE YOU", lovePositions, loveConfig);
+
+      // 4. Mùng 8/3 (Ngắt dòng riêng cho Mobile để không bị tràn chữ)
+      updateProgress("Chuẩn bị hiệu ứng mùng 8/3...", 85); await yieldToMain();
+      const m83Text = isMobile ? ["Mùng 8/3", "vui vẻ nha", "ebe ❤️"] : ["mùng 8/3", "vui vẻ nha ebe"];
+      const m83Config = isMobile
+        ? { width: 1000, height: 600, size: 90, scale: 1.0, zSpread: 10, lineHeight: 110, jitter: 1.2 }
+        : { width: 1700, height: 620, size: 130, scale: 0.78, zSpread: 14, lineHeight: 150, jitter: 1.4 };
+      createTextPositionsFromCanvas(m83Text, march8Positions, m83Config);
+
+      particlesReady = true;
+      updateProgress("Đang khởi động AI Camera...", 95);
+      checkIfAllReady();
+      animate();
+    }
+
+    function checkIfAllReady() {
+      if (particlesReady && cameraReady && aiReady && !hasHiddenLoading) {
+        updateProgress("Sẵn sàng!", 100);
+        hasHiddenLoading = true;
+        setTimeout(() => {
+          loadingEl.style.opacity = "0";
+          setTimeout(() => { loadingEl.style.display = "none"; }, 500);
+        }, 300);
+      }
+    }
+    initParticlesAsync();
+
+    // =========================================================
+    // AI HAND TRACKING (MEDIAPIPE)
+    // =========================================================
+    const MODE_RANDOM = "random", MODE_HEART = "heart", MODE_LOVE = "love", MODE_MARCH8 = "march8";
+    let mode = MODE_RANDOM;
+    let targetZoom = 1, currentZoom = 1;
+    let pinchActive = false, twoFingerActive = false;
+    let pinchStartTime = -999, modeHoldUntil = 0, pinchLock = false;
+    const clock = new THREE.Clock();
+
+    function setGestureLabel(text) { gestureLabel.innerHTML = text; }
+    function isFingerUp(lm, tip, pip) { return lm[tip].y < lm[pip].y; }
+    function isFingerDown(lm, tip, pip) { return lm[tip].y > lm[pip].y; }
+
+    function detectPeaceSign(lm) {
+      const indexUp = isFingerUp(lm, 8, 6), middleUp = isFingerUp(lm, 12, 10);
+      const ringDown = isFingerDown(lm, 16, 14), pinkyDown = isFingerDown(lm, 20, 18);
+      const spread = Math.hypot(lm[8].x - lm[12].x, lm[8].y - lm[12].y);
+      return indexUp && middleUp && ringDown && pinkyDown && spread > 0.04;
+    }
+
+    function detectPinchOrHeart(results) {
+      const handsData = results.multiHandLandmarks;
+      if (!handsData || !handsData.length) return false;
+      if (handsData.length === 2) {
+        const h1 = handsData[0], h2 = handsData[1];
+        const dThumb = Math.hypot(h1[4].x - h2[4].x, h1[4].y - h2[4].y);
+        const dIndex = Math.hypot(h1[8].x - h2[8].x, h1[8].y - h2[8].y);
+        return dThumb < 0.15 && dIndex < 0.15; // Nới lỏng dung sai cho điện thoại
+      }
+      const h = handsData[0];
+      return Math.hypot(h[4].x - h[8].x, h[4].y - h[8].y) < 0.05;
+    }
+
+    const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+    hands.setOptions({
+      maxNumHands: 2,
+      modelComplexity: 1, // Để 1 để cân bằng tốc độ và độ chính xác
+      minDetectionConfidence: 0.6,
+      minTrackingConfidence: 0.6
+    });
+
+    hands.onResults((results) => {
+      if (!aiReady) { aiReady = true; checkIfAllReady(); }
+      pinchActive = false; twoFingerActive = false;
+
+      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        const lm = results.multiHandLandmarks[0];
+        const palmSize = Math.hypot(lm[0].x - lm[9].x, lm[0].y - lm[9].y);
+        targetZoom = Math.max(0.6, Math.min(2.0, palmSize * 4.0)); // Điều chỉnh biên độ zoom
+
+        for (const hand of results.multiHandLandmarks) {
+          if (detectPeaceSign(hand)) { twoFingerActive = true; break; }
+        }
+        pinchActive = detectPinchOrHeart(results);
+      } else {
+        targetZoom = 1;
+      }
+
+      const now = clock.getElapsedTime();
+      if (twoFingerActive) {
+        mode = MODE_MARCH8; modeHoldUntil = now + 0.3; pinchLock = false;
+        setGestureLabel("✌️ Mùng 8/3"); return;
+      }
+      if (pinchActive && !pinchLock) {
+        pinchStartTime = now; mode = MODE_HEART; modeHoldUntil = now + 1.2; pinchLock = true;
+        setGestureLabel("🫶 Thả tim"); return;
+      }
+      if (!pinchActive) pinchLock = false;
+      if (!pinchActive && !twoFingerActive && now > modeHoldUntil) {
+        if (mode !== MODE_RANDOM) { mode = MODE_RANDOM; setGestureLabel("Trạng thái tự do"); }
+      }
+    });
+
+    const cam = new Camera(videoElement, {
+      onFrame: async () => { await hands.send({ image: videoElement }); },
+      width: 640, height: 480 // Giữ nguyên độ phân giải cam nội bộ để AI xử lý nhanh
+    });
+
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" }, // Mặc định dùng cam trước trên đt
+      audio: false
+    }).then((stream) => {
+      previewElement.srcObject = stream;
+      videoElement.srcObject = stream;
+      cameraReady = true;
+      checkIfAllReady();
+      cam.start();
+    }).catch(() => {
+      loadingText.textContent = "Cần cho phép Camera để trải nghiệm 🥹";
+      document.querySelector('.spinner').style.display = 'none';
+      loadingDetail.style.display = 'none';
+    });
+
+    // =========================================================
+    // VÒNG LẶP RENDER
+    // =========================================================
+    function animate() {
+      requestAnimationFrame(animate);
+      if(!particlesReady) return;
+
+      const time = clock.getElapsedTime();
+
+      // Chuyển từ Heart -> Love
+      if (mode === MODE_HEART && time - pinchStartTime > 0.95) {
+        mode = MODE_LOVE;
+        modeHoldUntil = time + 0.5;
+        setGestureLabel("🫶 I LOVE YOU");
+      }
+
+      // Áp dụng BaseScale để hình không bị tràn màn hình điện thoại
+      currentZoom += (targetZoom - currentZoom) * 0.08;
+      particleSystem.scale.setScalar(currentZoom * baseScale);
+
+      particleSystem.rotation.y = Math.sin(time * 0.15) * 0.15;
+      particleSystem.rotation.x = Math.cos(time * 0.1) * 0.05;
+
+      const huePulse = 0.5 + Math.sin(time * 1.8) * 0.5;
+      material.color.setHSL(0.92 + huePulse * 0.025, 1, 0.72);
+
+      let targetArray = randomPositions;
+      let lerpSpeed = 0.026, bloomStrength = 1.1;
+
+      if (mode === MODE_HEART) { targetArray = heartPositions; lerpSpeed = 0.082; bloomStrength = 1.45; }
+      else if (mode === MODE_LOVE) { targetArray = lovePositions; lerpSpeed = 0.078; bloomStrength = 1.35; }
+      else if (mode === MODE_MARCH8) { targetArray = march8Positions; lerpSpeed = 0.078; bloomStrength = 1.38; }
+
+      bloomPass.strength += (bloomStrength - bloomPass.strength) * 0.08;
+      const positionsAttr = geometry.attributes.position.array;
+
+      for (let i = 0; i < particleCount; i++) {
+        const i3 = i * 3;
+        let tx, ty, tz;
+
+        if (mode === MODE_RANDOM) {
+          tx = randomPositions[i3] + Math.sin(time * 1.1 + i * 0.013) * 6.5;
+          ty = randomPositions[i3 + 1] + Math.cos(time * 1.03 + i * 0.017) * 6.5;
+          tz = randomPositions[i3 + 2] + Math.sin(time * 0.88 + i * 0.011) * 4.5;
+        } else if (mode === MODE_HEART) {
+          tx = targetArray[i3] + Math.sin(time * 2.7 + i * 0.002) * 1.8;
+          ty = targetArray[i3 + 1] + Math.cos(time * 2.7 + i * 0.002) * 1.8;
+          tz = targetArray[i3 + 2];
+        } else {
+          tx = targetArray[i3]; ty = targetArray[i3 + 1]; tz = targetArray[i3 + 2];
+        }
+
+        positionsAttr[i3] += (tx - positionsAttr[i3]) * lerpSpeed;
+        positionsAttr[i3 + 1] += (ty - positionsAttr[i3 + 1]) * lerpSpeed;
+        positionsAttr[i3 + 2] += (tz - positionsAttr[i3 + 2]) * lerpSpeed;
+      }
+
+      geometry.attributes.position.needsUpdate = true;
+      composer.render();
+    }
+
+    // =========================================================
+    // RESIZE HANDLER
+    // =========================================================
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      
+      const newBloomRes = window.innerWidth < 768 
+        ? new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2) 
+        : new THREE.Vector2(window.innerWidth, window.innerHeight);
+        
+      composer.setSize(window.innerWidth, window.innerHeight);
+      bloomPass.setSize(newBloomRes.x, newBloomRes.y);
+    });
+  </script>
+</body>
+</html>
