@@ -547,6 +547,36 @@
       scroll-behavior: smooth;
     }
 
+    /* FIX PHẦN BỨC THƯ */
+    .letter-paper {
+      display: flex;
+      flex-direction: column;
+      min-height: 320px;
+      max-height: 100%;
+      overflow: hidden;
+    }
+
+    .letter-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 6px;
+      scroll-behavior: smooth;
+    }
+
+    .letter-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .letter-scroll::-webkit-scrollbar-thumb {
+      background: #f9a8d4;
+      border-radius: 999px;
+    }
+
+    .letter-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
     @media (max-width: 420px) {
       .retro-border {
         border-width: 2.5px;
@@ -783,6 +813,11 @@
     function setScreen(newScreen) {
       screen = newScreen;
       contentArea.scrollTop = 0;
+
+      if (newScreen === 'letter') {
+        typedLetterDone = false;
+      }
+
       render();
     }
 
@@ -876,7 +911,8 @@
 
     function syncAudio(forcePlayIfChanged = false) {
       const track = PLAYLIST[currentTrackIndex];
-      const wasSame = audioPlayer.src === track.url;
+      const currentSrc = audioPlayer.getAttribute('src') || '';
+      const wasSame = currentSrc === track.url;
 
       if (!wasSame) audioPlayer.src = track.url;
 
@@ -1349,8 +1385,8 @@
             <p class="font-main text-xs sm:text-sm text-gray-500">Nên anh để chúng ở đây</p>
           </div>
 
-          <div class="bg-white w-full p-4 sm:p-5 retro-border retro-shadow relative leading-relaxed min-h-[320px]">
-            <div class="flex items-center justify-between gap-3 mb-4 border-b-2 border-dashed border-gray-300 pb-3">
+          <div class="bg-white w-full retro-border retro-shadow relative letter-paper">
+            <div class="flex items-center justify-between gap-3 border-b-2 border-dashed border-gray-300 px-4 sm:px-5 py-3 shrink-0">
               <div>
                 <p class="font-pixel text-[9px] sm:text-[10px] font-bold text-pink-500">To: My Princess</p>
                 <p class="font-pixel text-[9px] sm:text-[10px] text-gray-500 mt-1">Date: 08/03</p>
@@ -1358,10 +1394,12 @@
               <i data-lucide="sparkles" class="w-5 h-5 text-yellow-500 shrink-0"></i>
             </div>
 
-            <div id="letterTypedContent" class="font-main text-[13px] sm:text-sm text-gray-800 space-y-4 leading-relaxed"></div>
+            <div id="letterScrollArea" class="letter-scroll px-4 sm:px-5 py-4 min-h-[240px]">
+              <div id="letterTypedContent" class="font-main text-[13px] sm:text-sm text-gray-800 space-y-4 leading-relaxed break-words"></div>
+            </div>
           </div>
 
-          <div class="mt-4 w-full pb-2">
+          <div class="mt-4 w-full pb-2 shrink-0">
             <div class="flex gap-2">
               <input id="replyInput" type="text" placeholder="Reply..." class="flex-grow min-w-0 p-2 font-pixel text-[9px] sm:text-[10px] retro-border outline-none focus:bg-pink-50" />
               <button id="replyBtn" class="p-2 bg-pink-400 retro-border retro-shadow text-white active-press shrink-0">
@@ -1476,15 +1514,22 @@
       typeNext();
     }
 
+    function scrollLetterToBottom() {
+      const scrollArea = document.getElementById('letterScrollArea');
+      if (!scrollArea) return;
+      scrollArea.scrollTop = scrollArea.scrollHeight;
+    }
+
     function typeLetter() {
       const container = document.getElementById('letterTypedContent');
-      if (!container || typedLetterDone) return;
+      const scrollArea = document.getElementById('letterScrollArea');
+      if (!container || !scrollArea || typedLetterDone) return;
 
       const paragraphs = [
         'Hôm nay là một ngày đặc biệt, và anh muốn dành cho em nhiều hơn một lời chúc đơn giản.',
         'Anh cảm ơn vì em đã xuất hiện, vì sự dịu dàng, đáng yêu và những điều nhỏ bé nhưng rất ấm áp mà em mang đến.',
         'Anh mong em luôn vui vẻ, luôn xinh đẹp theo cách riêng của mình, và dù hôm nay hay những ngày rất bình thường, em vẫn sẽ được yêu thương thật nhiều.',
-        'Nếu có điều gì anh muốn giữ lâu nhất, thì đó là nụ cười của em.Nên nhớ anh luôn ở đây support em bất cứ lúc nào. Chúc em một ngày 8/3 thật hạnh phúc nhé 💖',
+        'Nếu có điều gì anh muốn giữ lâu nhất, thì đó là nụ cười của em. Nên nhớ anh luôn ở đây support em bất cứ lúc nào. Chúc em một ngày 8/3 thật hạnh phúc nhé 💖',
         '<p class="text-right font-pixel text-pink-500 pt-2 text-[11px] sm:text-[12px]">Love you 3000!</p>',
         '<p class="text-right font-pixel text-pink-500 pt-2 text-[11px] sm:text-[12px]">PHUNG DUC DAT</p>'
       ];
@@ -1494,9 +1539,12 @@
       let html = '';
 
       function tick() {
+        if (screen !== 'letter') return;
+
         if (pIndex >= paragraphs.length) {
           typedLetterDone = true;
           container.classList.remove('typing-cursor');
+          scrollLetterToBottom();
           return;
         }
 
@@ -1509,26 +1557,38 @@
           container.innerHTML = html;
           pIndex++;
           charIndex = 0;
-          setTimeout(tick, 120);
+          scrollLetterToBottom();
+          setTimeout(tick, 140);
           return;
         }
 
-        if (charIndex === 0) html += '<p>';
+        if (charIndex === 0) {
+          html += '<p>';
+        }
 
         html += currentParagraph[charIndex];
         charIndex++;
 
+        container.innerHTML = html;
+        scrollLetterToBottom();
+
         if (charIndex >= currentParagraph.length) {
           html += '</p>';
+          container.innerHTML = html;
           pIndex++;
           charIndex = 0;
-          container.innerHTML = html;
-          setTimeout(tick, 180);
+          scrollLetterToBottom();
+          setTimeout(tick, 220);
           return;
         }
 
-        container.innerHTML = html;
-        setTimeout(tick, 20);
+        let delay = 20;
+        const lastChar = currentParagraph[charIndex - 1];
+        if (lastChar === ' ') delay = 14;
+        if (lastChar === ',' || lastChar === ';' || lastChar === ':') delay = 55;
+        if (lastChar === '.' || lastChar === '!' || lastChar === '?') delay = 95;
+
+        setTimeout(tick, delay);
       }
 
       tick();
